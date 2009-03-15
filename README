@@ -1,4 +1,16 @@
-Benchmark
+PartitionedTable
+
+A partitioned table stores all of its rows into 'buckets'
+which are defined by specifying a set of fields to partition on. 
+Exact matches on any subset of the partitioned fields can then
+be executed quickly using redis' glob capability.
+
+The performance is good when using the 'load' command since it saves
+on having to marshal many small objects by bulk marshaling an entire
+set of rows at one time. This property makes partitioned tables best
+for bulk loading and reading.
+
+Preliminary Benchmarks
 
 Loading 50,000 rows
   1.630000   0.090000   1.720000 (  1.833965)
