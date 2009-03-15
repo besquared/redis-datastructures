@@ -1,0 +1,3 @@
+[submodule "vendor/redis-rb"]
+	path = vendor/redis-rb
+	url = git://github.com/ezmobius/redis-rb.git
