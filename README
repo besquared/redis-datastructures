@@ -12,6 +12,20 @@ for bulk loading and reading.
 
 Preliminary Benchmarks
 
+class ConversionRates < PartitionedTable::Base
+  name "benchmark_conversion_rates"
+  fields :datasets, :versions, :conversions, :hours, :totals, :successes
+  partitions :datasets, :hours
+end
+
+Mac Mini
+OS X 10.5 Leopard
+1.66 GHz Intel Core Duo (2MB L2 Cache)
+2GB 667 MHz DDR2 SDRAM
+
+Ruby 1.8.6 patchlevel 114
+Redis-rb
+
 Loading 50,000 rows
   1.630000   0.090000   1.720000 (  1.833965)
 --------------------------------------------------
