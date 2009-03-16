@@ -43,6 +43,7 @@ begin
   puts "Finding 336 hours of data"
   puts Benchmark.measure {
     results = []
+    1.upto(336) do |hour|
       results += ConversionRates.find(:hours => hour)
     end
     puts "Length: " + results.length.to_s

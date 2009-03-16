@@ -59,7 +59,6 @@ module IndexedTable
             keys << key(field, query[field])
           end
         end
-        puts keys.inspect
         rows = storage.set_intersect(*keys)
         rows.collect{|row| Marshal.load(row)} unless rows.nil?
       end

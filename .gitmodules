@@ -1,3 +1,6 @@
 [submodule "vendor/redis-rb"]
 	path = vendor/redis-rb
 	url = git://github.com/ezmobius/redis-rb.git
+[submodule "vendor/extprot"]
+	path = vendor/extprot
+	url = git://github.com/mfp/extprot.git
