@@ -48,3 +48,72 @@ Length: 50000
 Finding 336 hours of cached data
 Length: 23504
   0.120000   0.020000   0.140000 (  0.148643)
+--------------------------------------------------
+
+After building about 10 different versions of in memory and redis backed
+data structures I need to write down my overall thinking regarding this.
+
+The main questions are
+1) What is the purpose?
+2) When and how will the data be loaded?
+3) When and how will the data be accessed?
+
+1) What is the purpose?
+My initial goal was something like an "OLAP cube" which would allow me to 
+pivot around certain dimensions and display their related measures or other 
+quantities related to them.
+
+2) When and how will the data be loaded?
+The data is not operational, it is historical. This is built to support
+advanced reporting interfaces. The data is loaded offline on a schedule and
+is generally not streamed in real time in any way. This means that load times
+are less important than read times. It also means there will be a lot of data,
+distribution of keys is important in order to take advantage of the distributed
+nature of key value stores. Structures that put all of the data into one list
+are not a good choice.
+
+3) When and how will the data be accessed?
+The data is accessed in "real time", people are seeing loaders, it needs to be
+fast. The less requests we have to do the better because network latency is our
+enemy here and our data backend is written in C. The less processing of data we 
+have to do to get our results in a usable state the better.
+
+Given these requirements there are a few conclusions
+1) Do things in bulk where it's possible
+It's faster to deal with a 1Kb string than to deal with 1024 1 byte strings
+
+2) Do things with the least number of keys that still provide "distribution"
+Pretend every key lookup is lost revenue, this is close to the truth
+
+3) Do things directly rather than with indirection
+The benefits of indirection are often overshadowed by the overhead involved
+in multi-stage processes, especially across networks. A corollary to this is
+do things in one place only.
+
+------------------------------------------------------
+
+The partitioned storage strategy is as good as we can do
+
+No duplication of data. The partitioning splits the set of rows into 
+non-overlapping subsets. This ensures that we aren't wasting space in 
+our in-memory system. It also ensures that we don't waste load or read 
+time on duplicate data.
+
+Partitioning creates *just* the right amount of keys. The same as the
+cross product of all of the values of the fields we are partitioning. For 
+instance if we are partitioning on 3 fields each with a cardinality of 100 
+then the total number of keys we'll create is 1,000,000. This means lookups 
+can be distributed as soon as we have a single partition field.
+
+Exact matching across all partitions in constant time. If we're looking
+for rows and we know the values of all of our partitions ahead of time then
+we can get the entire set of rows we care about in just 1 key look up.
+
+This also means that if we're looking for two exact matches we can do this
+in 2 key lookups. This is as good as we can get without duplicating data or
+creating more indirection to store multiple keys with a single row.
+
+In this sense, the partitioned storage strategy is optimal for many cases
+where exact matches are necessary. Range matches can be synthesized using
+exact matches by simply asking for one exact match for each value in some
+specified range of values.

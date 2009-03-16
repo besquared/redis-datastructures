@@ -53,7 +53,7 @@ module PartitionedTable
           buffer[part_key] << row
         end
         buffer.keys.each do |part_key|
-          storage.push_tail(part_key, buffer[part_key])
+          storage.push_tail(part_key, Marshal.dump(buffer[part_key]))
         end
       end
       def <<(row); load([row]); end
@@ -118,7 +118,7 @@ module PartitionedTable
         values = []
         storage.keys(glob).each do |key|
           storage.list_range(key, 0, -1).collect do |list|
-            values.concat(list)
+            values.concat(Marshal.load(list))
           end
         end
         values
