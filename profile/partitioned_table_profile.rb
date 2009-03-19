@@ -43,30 +43,41 @@ begin
     puts "Length: " + ConversionRates.find(:datasets => 'purchases', :hours => 100).length.to_s
   }
   
-  puts "-" * 50
-  puts "Finding purchases for 336 hours"
-  puts Benchmark.measure {
-    results = []
+  require 'ruby-prof'
+  
+  result = RubyProf.profile do
+    
+  # puts "-" * 50
+  # puts "Finding 336 hours of data"
+  # puts Benchmark.measure {
+    # results = []
     1.upto(336) do |hour|
-      results += ConversionRates.find(:datasets => 'purchases', :hours => hour)
+      ConversionRates.find(:hours => hour)
     end
-    puts "Length: " + results.length.to_s
+    # puts "Length: " + results.length.to_s
+  # }
+  
+  end
+
+  printer = RubyProf::GraphHtmlPrinter.new(result)
+  File.open("benchmark.html", 'w') do |f|
+    printer.print(f, :min_percent=>0)
+  end
+
+  puts "-" * 50
+  puts "Finding all data"
+  puts Benchmark.measure {
+    puts "Length: " + ConversionRates.find.length.to_s
   }
 
   puts "-" * 50
-  puts "Finding 336 hours of data"
+  puts "Finding 336 hours of cached data"
   puts Benchmark.measure {
     results = []
     1.upto(336) do |hour|
       results += ConversionRates.find(:hours => hour)
     end
     puts "Length: " + results.length.to_s
-  }
-
-  puts "-" * 50
-  puts "Finding all data"
-  puts Benchmark.measure {
-    puts "Length: " + ConversionRates.find.length.to_s
   }
 ensure
   redis = Redis.new

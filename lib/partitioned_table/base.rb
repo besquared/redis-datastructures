@@ -63,7 +63,7 @@ module PartitionedTable
       #  {:field_name => 'value', :other_field => 'other_value'}
       #
       def find(partitioned = {})
-        cached(glob_key(partitioned)) || nil
+        retrieve(glob_key(partitioned)) || nil
       end
       
       #
@@ -75,30 +75,6 @@ module PartitionedTable
         end
       end
       
-      #
-      # Query caching
-      # 
-      def cached(key)
-        values = cache_get(key)
-        returning values do
-          cache_set(key, values)
-        end
-      end
-
-      def cache_get(key)
-        cached = cache[cache_key(key)]
-        cached.blank? ? retrieve(key) : cached
-      end
-
-      def cache_set(key, value)
-        return if value.blank?
-        cache[cache_key(key)] = value
-      end
-
-      def cache_key(key)
-        "cache:#{key}"
-      end
-
     protected
       #
       # Key construction (partitioned storage strategy)
